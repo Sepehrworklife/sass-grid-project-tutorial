@@ -1,0 +1,134 @@
+// Variables
+$columns: 12 !default;
+$gutter: 0.5rem !default;
+$row-class-name: "row" !default;
+$col-class-name: "col" !default;
+$off-class-name: "off" !default;
+
+$breakpoints: (
+    (xs),
+    (sm, 768px),
+    (md, 992px),
+    (lg, 1200)
+) !default;
+
+
+
+// arz sotoon ra be % bedast miavarad
+@function get-col-percent( $column-num ) {
+    @return percentage($column-num / $columns);
+}
+
+// tavasaot in mixin mitavan be soorate amoodi ya ofoqi ( $orientation ) fasele gozari nemood.
+// $type mitavanad ham margin bashad ham padding
+@mixin spacing( $value, $type: margin, $orientataion: vertical){
+    @if $orientataion == vertical {
+        #{$type}-top: $value;
+        #{$type}-bottom: $value;
+    }
+    @else {
+        #{$type}-right: $value;
+        #{$type}-left: $value;
+    }
+}
+
+
+
+.#{$row-class-name} {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    @include spacing( $gutter, margin, horizontal);
+}
+%#{$col-class-name} { 
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 0;
+    flex-shrink: 0;
+    min-height: 1px;
+    @include spacing( $gutter, padding, horizontal);
+}
+%#{$col-class-name}-flex { 
+    @extend %#{$col-class-name};
+    flex-grow: 1;
+    flex-basis: 0;
+    max-width: 100%;
+ 
+}
+
+
+// Dorost kardan class haye .col-lg-addad .col-md-addad .col-sm-addad .col-xs-addad
+@mixin grid-base ( $namespace ) {
+    .#{$col-class-name}-#{$namespace} {
+        @extend %#{$col-class-name}-flex;
+    }
+
+    @for $i from 1 through $columns {
+        .#{$col-class-name}-#{$namespace}-#{$i} {
+            @extend %#{$col-class-name};
+        }
+    }
+}
+
+
+@mixin grid-sizes( $namespace ){
+    @for $i from 1 through $columns {
+        .#{$col-class-name}-#{$namespace}-#{$i} {
+            flex-basis: get-col-percent($i);
+            max-width: get-col-percent($i);
+        }
+    }
+    @for $i from 1 through $columns {
+        // margin-left nabayad baraye .col-namespace-12 etefaq bioftad 
+        // be hamin kkhater ba dastore shartie zir az in etefaq  jelogiri shode ast
+        // $columns : 12 va dar halghe az 1 ta 12 addadash taqir mikonad.
+        @if( $i != $columns ) {
+            .#{$off-class-name}-#{$namespace}-#{$i} {
+                margin-left: get-col-percent($i);
+            }
+        }
+    }
+    .#{$off-class-name}-#{$namespace}-reset {
+        margin-left: 0;
+    }
+}
+
+
+
+//
+@each $val in $breakpoints {
+    $namespace: nth($val, 1);
+    @include grid-base( $namespace);
+}
+
+@each $val in $breakpoints {
+    // baraye device haye xs
+    @if length($val) == 1 {
+
+        $namespace: nth($val, 1); // xs
+        @include grid-sizes( $namespace );
+
+    }
+    // baraye device haye : xl - md - sm
+    @else {
+
+        $namespace: nth($val, 1);
+        $size: nth($val, 2);
+
+        @media only screen and (min-width: #{$size}){
+            @include grid-sizes( $namespace );
+        }
+
+    }
+}
+
+.row [class*="col-"] {
+    height: 30px;
+    margin-top: 10px;
+}
+.row [class*="col-"] div {
+    background-color: slateblue;
+    height: 30px;
+}
